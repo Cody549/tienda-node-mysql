@@ -1,0 +1,503 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>TiendaPro | Admin + Ventas + Historial Local</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: system-ui, 'Segoe UI', 'Inter', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(135deg, #eef2f7 0%, #d9e0e8 100%);
+      min-height: 100vh;
+      padding: 1.5rem;
+    }
+
+    .app-container {
+      max-width: 1600px;
+      margin: 0 auto;
+    }
+
+    .top-bar {
+      background: white;
+      border-radius: 2rem;
+      padding: 0.8rem 1.8rem;
+      margin-bottom: 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+
+    .logo-area h2 {
+      font-size: 1.5rem;
+      font-weight: 800;
+      background: linear-gradient(125deg, #1e2b4f, #2b5b8b);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+    }
+
+    .role-badge {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background: #f1f5f9;
+      padding: 0.4rem 1.2rem;
+      border-radius: 3rem;
+    }
+
+    .role-text {
+      font-weight: 700;
+      padding: 0.3rem 1rem;
+      border-radius: 2rem;
+    }
+
+    .role-text.admin { background: #1e293b; color: white; }
+    .role-text.vendor { background: #0f3b2c; color: white; }
+
+    .btn-logout {
+      background: none;
+      border: 1px solid #cbd5e1;
+      padding: 0.4rem 1rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 500;
+    }
+
+    .panel { display: none; animation: fadeIn 0.3s ease; }
+    .panel.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+
+    .stats-row { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card { flex: 1; min-width: 170px; background: white; border-radius: 1.5rem; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    .stat-label { font-size: 0.75rem; text-transform: uppercase; font-weight: 600; color: #5b6e8c; }
+    .stat-number { font-size: 2rem; font-weight: 800; color: #1f2b48; }
+    .two-columns { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .form-panel, .products-panel { background: white; border-radius: 1.5rem; padding: 1.5rem; box-shadow: 0 8px 20px rgba(0,0,0,0.05); }
+    .form-panel { flex: 1.2; min-width: 260px; }
+    .products-panel { flex: 2.5; }
+    .input-group { margin-bottom: 1rem; }
+    label { font-weight: 600; font-size: 0.8rem; color: #334155; }
+    input, select { width: 100%; padding: 0.8rem; border-radius: 1rem; border: 1.5px solid #e2e8f0; margin-top: 0.3rem; }
+    .btn-primary { background: linear-gradient(100deg, #1e2b4f, #1f3a6b); width: 100%; padding: 0.8rem; border-radius: 2rem; color: white; font-weight: bold; border: none; cursor: pointer; margin-top: 0.5rem; }
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.2rem; margin-top: 1rem; }
+    .product-card { background: #fefefe; border-radius: 1.2rem; padding: 1rem; border: 1px solid #eef2f8; }
+    .btn-delete { background: #fee2e2; border: none; padding: 0.5rem; border-radius: 2rem; width: 100%; margin-top: 0.7rem; cursor: pointer; font-weight: 600; color: #b91c1c; }
+
+    .pos-container { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .productos-venta { flex: 2; background: white; border-radius: 1.5rem; padding: 1.5rem; }
+    .carrito-venta { flex: 1.2; background: white; border-radius: 1.5rem; padding: 1.5rem; position: sticky; top: 1rem; height: fit-content; }
+    .search-venta { margin-bottom: 1.5rem; }
+    .grid-venta { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1rem; max-height: 55vh; overflow-y: auto; }
+    .card-venta { background: #f8fafc; border-radius: 1.2rem; padding: 0.9rem; cursor: pointer; transition: 0.2s; border: 1px solid #e2e8f0; text-align: center; }
+    .card-venta:hover { background: #eef2ff; transform: scale(0.98); }
+    .precio-venta { font-weight: 800; color: #0f3b2c; font-size: 1.2rem; }
+    .carrito-items { max-height: 300px; overflow-y: auto; margin: 1rem 0; }
+    .item-carrito { display: flex; justify-content: space-between; align-items: center; background: #f1f5f9; padding: 0.6rem; border-radius: 1rem; margin-bottom: 0.5rem; font-size: 0.85rem; flex-wrap: wrap; gap: 0.5rem; }
+    .cantidad-control { display: flex; align-items: center; gap: 0.5rem; }
+    .cantidad-control button { background: white; border: 1px solid #cbd5e1; width: 28px; border-radius: 30px; cursor: pointer; font-weight: bold; }
+    .total-venta { font-size: 1.5rem; font-weight: 800; border-top: 2px dashed #cbd5e1; padding-top: 1rem; margin: 1rem 0; }
+    .btn-vender { background: #0f3b2c; width: 100%; padding: 0.9rem; border-radius: 2rem; color: white; font-weight: bold; border: none; font-size: 1rem; cursor: pointer; }
+    .btn-limpiar { background: #e2e8f0; width: 100%; margin-top: 0.5rem; padding: 0.6rem; border-radius: 2rem; border: none; cursor: pointer; }
+
+    .historial-container { margin-top: 2rem; background: white; border-radius: 1.5rem; padding: 1.5rem; }
+    .historial-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; margin-bottom: 1rem; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { padding: 0.75rem; text-align: left; border-bottom: 1px solid #e2e8f0; font-size: 0.85rem; }
+    th { background: #f8fafc; font-weight: 600; }
+    .factura-btn { background: #3b82f6; color: white; border: none; padding: 0.3rem 0.8rem; border-radius: 2rem; cursor: pointer; font-size: 0.7rem; }
+    .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: white; border-radius: 1.5rem; padding: 2rem; max-width: 500px; width: 90%; max-height: 80vh; overflow-y: auto; }
+    .close-modal { float: right; cursor: pointer; font-size: 1.5rem; }
+    .factura-detalle { font-family: monospace; white-space: pre-line; font-size: 0.8rem; }
+    .empty-msg { text-align: center; color: #6c7e9e; padding: 2rem; }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <div class="top-bar">
+    <div class="logo-area"><h2>🛒 TiendaPro · Ventas con Historial Local</h2></div>
+    <div class="role-badge">
+      <span>👤 Rol actual:</span>
+      <span id="rolActualTexto" class="role-text admin">Administrador</span>
+      <button id="btnCambiarRol" class="btn-logout">🔁 Cambiar a Vendedor</button>
+    </div>
+  </div>
+
+  <!-- PANEL ADMIN -->
+  <div id="adminPanel" class="panel active">
+    <div class="stats-row">
+      <div class="stat-card"><div class="stat-label">📦 TOTAL PRODUCTOS</div><div class="stat-number" id="totalProductos">0</div></div>
+      <div class="stat-card"><div class="stat-label">💰 VALOR INVENTARIO</div><div class="stat-number" id="valorInventario">S/. 0</div></div>
+      <div class="stat-card"><div class="stat-label">🔄 VENTAS TOTALES</div><div class="stat-number" id="totalVentas">0</div></div>
+    </div>
+    <div class="two-columns">
+      <div class="form-panel"><h3>✨ Agregar Producto</h3>
+        <div class="input-group"><label>Nombre</label><input type="text" id="nombre" placeholder="Ej: Laptop Gamer"></div>
+        <div class="input-group"><label>Precio (S/.)</label><input type="number" id="precio" placeholder="0.00" step="0.01"></div>
+        <div class="input-group"><label>Stock</label><input type="number" id="stock" placeholder="Cantidad"></div>
+        <button class="btn-primary" onclick="agregarProducto()">➕ Agregar</button>
+      </div>
+      <div class="products-panel"><h3>📋 Lista de Productos</h3>
+        <button class="btn-primary" style="background:#334155; margin-bottom:1rem;" onclick="cargarProductos()">⟳ Cargar productos</button>
+        <div id="adminProductsGrid" class="products-grid"></div>
+      </div>
+    </div>
+    <div class="historial-container">
+      <div class="historial-header"><h3>📜 HISTORIAL DE VENTAS</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1rem;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+      <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Factura</th></tr></thead><tbody id="historialBody"><tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr></tbody></table></div>
+    </div>
+  </div>
+
+  <!-- PANEL VENDEDOR -->
+  <div id="vendorPanel" class="panel">
+    <div class="pos-container">
+      <div class="productos-venta">
+        <h3>🛍️ Productos disponibles</h3>
+        <div class="search-venta"><input type="text" id="searchVenta" placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosVenta()"></div>
+        <div id="ventaProductosGrid" class="grid-venta"></div>
+      </div>
+      <div class="carrito-venta">
+        <h3>🛒 Carrito de compras</h3>
+        <div class="input-group"><label>📄 Tipo Comprobante</label>
+          <select id="tipoComprobante">
+            <option value="BOLETA">Boleta</option>
+            <option value="FACTURA">Factura</option>
+          </select>
+        </div>
+        <div class="input-group"><label>🆔 DNI / RUC</label>
+          <input type="text" id="clienteDocumento" placeholder="DNI (8) o RUC (11)">
+        </div>
+        <div class="input-group"><label>👤 Nombre / Razón Social</label>
+          <input type="text" id="clienteNombre" placeholder="Nombre del cliente">
+        </div>
+        <div id="carritoLista" class="carrito-items"></div>
+        <div class="total-venta">Total: S/. <span id="totalCarrito">0.00</span></div>
+        <button class="btn-vender" onclick="realizarVenta()">💵 COBRAR Y GUARDAR</button>
+        <button class="btn-limpiar" onclick="limpiarCarrito()">🗑️ Limpiar carrito</button>
+      </div>
+    </div>
+    <div class="historial-container">
+      <div class="historial-header"><h3>📜 ÚLTIMAS VENTAS</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1rem;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+      <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Factura</th></tr></thead><tbody id="historialBodyVendor"><tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<div id="facturaModal" class="modal">
+  <div class="modal-content"><span class="close-modal" onclick="cerrarModal()">&times;</span><h3>🧾 COMPROBANTE DE VENTA</h3><div id="facturaDetalle" class="factura-detalle"></div><button onclick="cerrarModal()" style="margin-top:1rem; padding:0.5rem 1rem;">Cerrar</button></div>
+</div>
+
+<script>
+  const URL_PRODUCTOS = "http://localhost:3000/productos";
+  let productosGlobales = [];
+  let carrito = [];
+  let currentRole = "admin";
+
+  // ========== HISTORIAL EN LOCALSTORAGE ==========
+  function cargarHistorial() {
+    const historial = JSON.parse(localStorage.getItem("historial_ventas") || "[]");
+    renderizarHistorial(historial);
+    const totalVentasSpan = document.getElementById("totalVentas");
+    if (totalVentasSpan) totalVentasSpan.innerText = historial.length;
+  }
+
+  function renderizarHistorial(ventas) {
+    const tablaBody = document.getElementById("historialBody");
+    const tablaBodyVendor = document.getElementById("historialBodyVendor");
+    
+    const renderTabla = (tbody) => {
+      if (!tbody) return;
+      if (!ventas || ventas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;">📭 No hay ventas registradas</td></tr>';
+        return;
+      }
+      let html = "";
+      [...ventas].reverse().forEach(venta => {
+        const productosResumen = venta.items.map(i => `${i.nombre} x${i.cantidad}`).join(", ");
+        html += `<tr>
+          <td>${venta.fecha}</td>
+          <td>${venta.tipoComprobante || "BOLETA"}</td>
+          <td>${venta.clienteNombre || "Consumidor Final"}<br><small>${venta.clienteDocumento || "—"}</small></td>
+          <td>${productosResumen.substring(0, 60)}${productosResumen.length>60?"...":""}</td>
+          <td>S/. ${venta.total.toFixed(2)}</td>
+          <td><button class="factura-btn" onclick='verFactura(${JSON.stringify(venta).replace(/'/g, "&#39;")})'>Ver Factura</button></td>
+        </tr>`;
+      });
+      tbody.innerHTML = html;
+    };
+    
+    renderTabla(tablaBody);
+    renderTabla(tablaBodyVendor);
+  }
+
+  function guardarVentaEnLocalStorage(tipoComprobante, clienteDocumento, clienteNombre, items, total) {
+    const historial = JSON.parse(localStorage.getItem("historial_ventas") || "[]");
+    const nuevaVenta = {
+      id: Date.now(),
+      fecha: new Date().toLocaleString(),
+      tipoComprobante: tipoComprobante,
+      clienteDocumento: clienteDocumento || "—",
+      clienteNombre: clienteNombre || "Consumidor Final",
+      items: items.map(i => ({ nombre: i.nombre, cantidad: i.cantidad, precio: i.precio })),
+      total: total
+    };
+    historial.push(nuevaVenta);
+    localStorage.setItem("historial_ventas", JSON.stringify(historial));
+    cargarHistorial();
+  }
+
+  function verFactura(venta) {
+    let detalles = `================================
+       🧾 ${venta.tipoComprobante || "BOLETA"} DE VENTA
+================================
+Fecha: ${venta.fecha}
+Cliente: ${venta.clienteNombre || "Consumidor Final"}
+${venta.clienteDocumento ? `Documento: ${venta.clienteDocumento}` : ''}
+--------------------------------
+Productos:\n`;
+    venta.items.forEach(item => {
+      detalles += `  ${item.nombre}  x${item.cantidad}   S/. ${(item.precio * item.cantidad).toFixed(2)}\n`;
+    });
+    detalles += `--------------------------------
+TOTAL: S/. ${venta.total.toFixed(2)}
+================================
+¡Gracias por su compra!`;
+    document.getElementById("facturaDetalle").innerText = detalles;
+    document.getElementById("facturaModal").style.display = "flex";
+  }
+
+  function cerrarModal() {
+    document.getElementById("facturaModal").style.display = "none";
+  }
+
+  // ========== ADMIN: PRODUCTOS ==========
+  async function cargarProductos() {
+    try {
+      const res = await fetch(URL_PRODUCTOS);
+      const data = await res.json();
+      productosGlobales = data || [];
+      actualizarEstadisticasAdmin(productosGlobales);
+      renderAdminProducts(productosGlobales);
+    } catch (err) {
+      document.getElementById("adminProductsGrid").innerHTML = `<div class="empty-msg">⚠️ Error: Asegúrate que JSON Server esté corriendo en ${URL_PRODUCTOS}</div>`;
+    }
+  }
+
+  function actualizarEstadisticasAdmin(productos) {
+    const total = productos.length;
+    let valorInv = 0;
+    productos.forEach(p => { valorInv += (parseFloat(p.precio) || 0) * (parseInt(p.stock) || 0); });
+    document.getElementById("totalProductos").innerText = total;
+    document.getElementById("valorInventario").innerHTML = `S/. ${valorInv.toFixed(2)}`;
+  }
+
+  function renderAdminProducts(productos) {
+    const container = document.getElementById("adminProductsGrid");
+    if (!productos.length) { container.innerHTML = `<div class="empty-msg">📭 No hay productos. Agrega uno nuevo.</div>`; return; }
+    let html = "";
+    productos.forEach(p => {
+      html += `<div class="product-card">
+        <div class="product-name"><span>${escapeHtml(p.nombre)}</span><span>S/. ${parseFloat(p.precio).toFixed(2)}</span></div>
+        <div>📦 Stock: ${p.stock} uds</div>
+        <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  async function agregarProducto() {
+    const nombre = document.getElementById("nombre").value.trim();
+    const precio = parseFloat(document.getElementById("precio").value);
+    const stock = parseInt(document.getElementById("stock").value);
+    if (!nombre || isNaN(precio) || precio < 0 || isNaN(stock) || stock < 0) { alert("❌ Complete todos los campos correctamente."); return; }
+    try {
+      const res = await fetch(URL_PRODUCTOS, { 
+        method: "POST", 
+        headers: { "Content-Type": "application/json" }, 
+        body: JSON.stringify({ nombre, precio, stock }) 
+      });
+      const data = await res.json();
+      alert(data.mensaje || "✅ Producto agregado");
+      document.getElementById("nombre").value = ""; 
+      document.getElementById("precio").value = ""; 
+      document.getElementById("stock").value = "";
+      await cargarProductos();
+      if (currentRole === "vendedor") await cargarProductosVenta();
+    } catch (err) { alert("Error al agregar producto. ¿JSON Server está corriendo?"); }
+  }
+
+  async function eliminarProducto(id) {
+    if (!confirm("¿Eliminar producto permanentemente?")) return;
+    try {
+      await fetch(`${URL_PRODUCTOS}/${id}`, { method: "DELETE" });
+      alert("🗑️ Producto eliminado");
+      await cargarProductos();
+      if (currentRole === "vendedor") await cargarProductosVenta();
+    } catch (err) { alert("Error al eliminar"); }
+  }
+
+  // ========== VENDEDOR ==========
+  async function cargarProductosVenta() {
+    try {
+      const res = await fetch(URL_PRODUCTOS);
+      const data = await res.json();
+      productosGlobales = data.filter(p => parseInt(p.stock) > 0);
+      filtrarProductosVenta();
+    } catch (err) { 
+      document.getElementById("ventaProductosGrid").innerHTML = `<div class="empty-msg">⚠️ Error cargando productos</div>`;
+    }
+  }
+
+  function filtrarProductosVenta() {
+    const searchTerm = document.getElementById("searchVenta")?.value.toLowerCase() || "";
+    const filtrados = productosGlobales.filter(p => p.nombre.toLowerCase().includes(searchTerm));
+    renderProductosVenta(filtrados);
+  }
+
+  function renderProductosVenta(productos) {
+    const container = document.getElementById("ventaProductosGrid");
+    if (!productos.length) { container.innerHTML = `<div class="empty-msg">✨ No hay productos con stock disponible</div>`; return; }
+    let html = "";
+    productos.forEach(p => {
+      html += `<div class="card-venta" onclick="agregarAlCarrito(${p.id}, '${escapeHtml(p.nombre)}', ${p.precio}, ${p.stock})">
+        <div><strong>${escapeHtml(p.nombre)}</strong></div>
+        <div class="precio-venta">S/. ${parseFloat(p.precio).toFixed(2)}</div>
+        <div class="stock-venta">📦 Stock: ${p.stock} uds</div>
+      </div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  function agregarAlCarrito(id, nombre, precio, stockMax) {
+    const index = carrito.findIndex(item => item.id === id);
+    if (index !== -1) {
+      if (carrito[index].cantidad + 1 > carrito[index].stockMax) { alert(`Stock insuficiente. Solo hay ${carrito[index].stockMax} unidades.`); return; }
+      carrito[index].cantidad++;
+    } else {
+      if (stockMax <= 0) { alert("Producto sin stock"); return; }
+      carrito.push({ id, nombre, precio, cantidad: 1, stockMax });
+    }
+    renderCarrito();
+  }
+
+  function cambiarCantidad(id, delta) {
+    const idx = carrito.findIndex(i => i.id === id);
+    if (idx === -1) return;
+    const nuevaCant = carrito[idx].cantidad + delta;
+    if (nuevaCant <= 0) carrito.splice(idx, 1);
+    else if (nuevaCant <= carrito[idx].stockMax) carrito[idx].cantidad = nuevaCant;
+    else alert(`No puedes superar el stock disponible (${carrito[idx].stockMax})`);
+    renderCarrito();
+  }
+
+  function renderCarrito() {
+    const container = document.getElementById("carritoLista");
+    if (!carrito.length) { container.innerHTML = `<div class="empty-msg">🛒 Carrito vacío</div>`; document.getElementById("totalCarrito").innerText = "0.00"; return; }
+    let html = ""; let total = 0;
+    carrito.forEach(item => {
+      const subtotal = item.precio * item.cantidad; total += subtotal;
+      html += `<div class="item-carrito">
+        <div><strong>${escapeHtml(item.nombre)}</strong><br><small>S/. ${item.precio.toFixed(2)} c/u</small></div>
+        <div class="cantidad-control"><button onclick="cambiarCantidad(${item.id}, -1)">-</button><span>${item.cantidad}</span><button onclick="cambiarCantidad(${item.id}, 1)">+</button></div>
+        <div>S/. ${subtotal.toFixed(2)}</div>
+      </div>`;
+    });
+    container.innerHTML = html;
+    document.getElementById("totalCarrito").innerText = total.toFixed(2);
+  }
+
+  async function realizarVenta() {
+    if (carrito.length === 0) { alert("No hay productos en el carrito."); return; }
+    const tipoComprobante = document.getElementById("tipoComprobante").value;
+    let clienteDocumento = document.getElementById("clienteDocumento").value.trim();
+    let clienteNombre = document.getElementById("clienteNombre").value.trim();
+    
+    if (tipoComprobante === "FACTURA" && !clienteDocumento) { alert("Para factura es necesario ingresar RUC"); return; }
+    if (!clienteNombre) clienteNombre = "Consumidor Final";
+    
+    try {
+      const res = await fetch(URL_PRODUCTOS);
+      const productosActualizados = await res.json();
+      for (let item of carrito) {
+        const prodReal = productosActualizados.find(p => p.id === item.id);
+        if (!prodReal || prodReal.stock < item.cantidad) { alert(`Stock insuficiente para "${item.nombre}".`); return; }
+      }
+      for (let item of carrito) {
+        const prodReal = productosActualizados.find(p => p.id === item.id);
+        const nuevoStock = prodReal.stock - item.cantidad;
+        await fetch(`${URL_PRODUCTOS}/${item.id}`, { 
+          method: "PUT", 
+          headers: { "Content-Type": "application/json" }, 
+          body: JSON.stringify({ nombre: prodReal.nombre, precio: prodReal.precio, stock: nuevoStock }) 
+        });
+      }
+      const totalVenta = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+      
+      guardarVentaEnLocalStorage(tipoComprobante, clienteDocumento, clienteNombre, carrito, totalVenta);
+      
+      alert(`✅ Venta realizada con éxito!\nTotal: S/. ${totalVenta.toFixed(2)}`);
+      limpiarCarrito();
+      await cargarProductos();
+      await cargarProductosVenta();
+    } catch (err) { alert("Error al procesar la venta: " + err.message); }
+  }
+
+  function limpiarCarrito() { 
+    carrito = []; 
+    renderCarrito(); 
+    document.getElementById("clienteDocumento").value = ""; 
+    document.getElementById("clienteNombre").value = ""; 
+  }
+
+  // ========== UTILS ==========
+  function escapeHtml(str) { 
+    if (!str) return ""; 
+    return str.replace(/[&<>]/g, function(m) { 
+      if (m === '&') return '&amp;'; 
+      if (m === '<') return '&lt;'; 
+      if (m === '>') return '&gt;'; 
+      return m; 
+    }); 
+  }
+
+  function cambiarRol() {
+    if (currentRole === "admin") {
+      currentRole = "vendedor";
+      document.getElementById("rolActualTexto").innerText = "Vendedor";
+      document.getElementById("rolActualTexto").className = "role-text vendor";
+      document.getElementById("btnCambiarRol").innerHTML = "🔁 Cambiar a Administrador";
+      document.getElementById("adminPanel").classList.remove("active");
+      document.getElementById("vendorPanel").classList.add("active");
+      cargarProductosVenta(); 
+      limpiarCarrito(); 
+      cargarHistorial();
+    } else {
+      currentRole = "admin";
+      document.getElementById("rolActualTexto").innerText = "Administrador";
+      document.getElementById("rolActualTexto").className = "role-text admin";
+      document.getElementById("btnCambiarRol").innerHTML = "🔁 Cambiar a Vendedor";
+      document.getElementById("vendorPanel").classList.remove("active");
+      document.getElementById("adminPanel").classList.add("active");
+      cargarProductos(); 
+      cargarHistorial();
+    }
+  }
+
+  // ========== INICIALIZACIÓN ==========
+  window.addEventListener("DOMContentLoaded", () => {
+    cargarProductos();
+    cargarHistorial();
+    document.getElementById("btnCambiarRol").addEventListener("click", cambiarRol);
+  });
+</script>
+</body>
+</html>
