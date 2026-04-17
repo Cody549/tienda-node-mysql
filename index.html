@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
   <title>TiendaPro | Admin + Ventas + Historial Local</title>
+  <title>POS Nexus | Sistema Moderno de Ventas</title>
   <style>
     * {
       margin: 0;
@@ -14,6 +15,12 @@
 
     body {
       background: linear-gradient(135deg, #eef2f7 0%, #d9e0e8 100%);
+      font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    }
+
+    body {
+      background: linear-gradient(145deg, #0f172a 0%, #1e293b 50%, #0f172a 100%);
+ 
       min-height: 100vh;
       padding: 1.5rem;
     }
@@ -27,6 +34,12 @@
       background: white;
       border-radius: 2rem;
       padding: 0.8rem 1.8rem;
+    /* Barra superior moderna */
+    .top-bar {
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(12px);
+      border-radius: 2rem;
+      padding: 0.6rem 2rem;
       margin-bottom: 2rem;
       display: flex;
       justify-content: space-between;
@@ -43,6 +56,18 @@
       background-clip: text;
       -webkit-background-clip: text;
       color: transparent;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .logo-area h2 {
+      font-size: 1.6rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, #f97316, #fb923c, #fdba74);
+      background-clip: text;
+      -webkit-background-clip: text;
+      color: transparent;
+      letter-spacing: -0.3px;
     }
 
     .role-badge {
@@ -119,22 +144,435 @@
     .close-modal { float: right; cursor: pointer; font-size: 1.5rem; }
     .factura-detalle { font-family: monospace; white-space: pre-line; font-size: 0.8rem; }
     .empty-msg { text-align: center; color: #6c7e9e; padding: 2rem; }
+      gap: 1.2rem;
+      background: rgba(15, 23, 42, 0.8);
+      backdrop-filter: blur(4px);
+      padding: 0.4rem 1.4rem;
+      border-radius: 3rem;
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+
+    .role-text {
+      font-weight: 600;
+      padding: 0.3rem 1.2rem;
+      border-radius: 2rem;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+    }
+
+    .role-text.admin { 
+      background: #f97316; 
+      color: #0f172a; 
+      box-shadow: 0 2px 6px rgba(249, 115, 22, 0.3);
+    }
+    .role-text.vendor { 
+      background: #0284c7; 
+      color: #ffffff; 
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.4);
+      color: #e2e8f0;
+      padding: 0.45rem 1.2rem;
+      border-radius: 2rem;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+    .btn-logout:hover { 
+      background: rgba(249, 115, 22, 0.2); 
+      border-color: #f97316;
+      transform: scale(0.97);
+    }
+
+    .panel { display: none; animation: slideUp 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1); }
+    .panel.active { display: block; }
+    @keyframes slideUp { from { opacity: 0; transform: translateY(12px);} to { opacity: 1; transform: translateY(0);} }
+
+    /* tarjetas estadísticas */
+    .stats-row { display: flex; flex-wrap: wrap; gap: 1.5rem; margin-bottom: 2rem; }
+    .stat-card {
+      flex: 1; min-width: 170px;
+      background: linear-gradient(135deg, #1e293b, #0f172a);
+      border-radius: 2rem;
+      padding: 1.3rem 1.5rem;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+      border-bottom: 3px solid #f97316;
+      transition: all 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-3px); border-bottom-color: #fb923c; }
+    .stat-label { 
+      font-size: 0.7rem; 
+      text-transform: uppercase; 
+      letter-spacing: 1px; 
+      font-weight: 700; 
+      color: #94a3b8; 
+    }
+    .stat-number { 
+      font-size: 2.2rem; 
+      font-weight: 800; 
+      color: #fb923c; 
+      letter-spacing: -1px; 
+    }
+
+    /* columnas admin */
+    .two-columns { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .form-panel, .products-panel { 
+      background: rgba(30, 41, 59, 0.85); 
+      backdrop-filter: blur(4px); 
+      border-radius: 2rem; 
+      padding: 1.6rem; 
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3); 
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    .form-panel h3, .products-panel h3 {
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+    }
+    .form-panel { flex: 1.2; min-width: 260px; }
+    .products-panel { flex: 2.5; }
+    .input-group { margin-bottom: 1.2rem; }
+    label { 
+      font-weight: 600; 
+      font-size: 0.75rem; 
+      color: #94a3b8; 
+      letter-spacing: 0.3px; 
+      text-transform: uppercase;
+    }
+    input, select {
+      width: 100%; 
+      padding: 0.85rem; 
+      border-radius: 1.2rem;
+      border: 1.5px solid #334155; 
+      background: #0f172a;
+      color: #f1f5f9;
+      margin-top: 0.4rem; 
+      font-size: 0.9rem; 
+      transition: all 0.2s;
+    }
+    input::placeholder {
+      color: #64748b;
+    }
+    input:focus, select:focus { 
+      outline: none; 
+      border-color: #f97316; 
+      box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2); 
+      background: #1e293b;
+    }
+
+    .btn-primary {
+      background: linear-gradient(105deg, #f97316, #ea580c);
+      width: 100%; 
+      padding: 0.85rem; 
+      border-radius: 2rem;
+      color: white; 
+      font-weight: 700; 
+      border: none; 
+      cursor: pointer;
+      margin-top: 0.5rem; 
+      transition: all 0.2s; 
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .btn-primary:hover { 
+      background: linear-gradient(105deg, #ea580c, #c2410c); 
+      transform: translateY(-2px); 
+      box-shadow: 0 8px 18px rgba(249, 115, 22, 0.3);
+    }
+
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 1.3rem; margin-top: 1.2rem; }
+    .product-card {
+      background: #1e293b;
+      border-radius: 1.5rem; 
+      padding: 1.2rem;
+      border: 1px solid #334155; 
+      transition: all 0.2s;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+      color: #e2e8f0;
+    }
+    .product-card:hover { 
+      transform: translateY(-2px); 
+      box-shadow: 0 12px 20px rgba(0, 0, 0, 0.3); 
+      border-color: #f97316; 
+    }
+    .product-name { display: flex; justify-content: space-between; font-weight: 700; margin-bottom: 0.4rem; font-size: 1rem; color: #f1f5f9;}
+    .btn-delete { 
+      background: rgba(220, 38, 38, 0.2); 
+      border: 1px solid #dc2626; 
+      padding: 0.55rem; 
+      border-radius: 2rem; 
+      width: 100%; 
+      margin-top: 0.9rem; 
+      cursor: pointer; 
+      font-weight: 600; 
+      color: #f87171; 
+      transition: all 0.2s;
+    }
+    .btn-delete:hover { background: rgba(220, 38, 38, 0.4); color: #fecaca; }
+
+    /* POS VENDEDOR */
+    .pos-container { display: flex; flex-wrap: wrap; gap: 2rem; }
+    .productos-venta { 
+      flex: 2; 
+      background: rgba(30, 41, 59, 0.85); 
+      backdrop-filter: blur(4px); 
+      border-radius: 2rem; 
+      padding: 1.5rem;
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    .productos-venta h3 {
+      color: #f1f5f9;
+      margin-bottom: 1rem;
+    }
+    .carrito-venta { 
+      flex: 1.2; 
+      background: #1e293b; 
+      border-radius: 2rem; 
+      padding: 1.5rem; 
+      position: sticky; 
+      top: 1rem; 
+      height: fit-content; 
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.3); 
+      border: 1px solid rgba(249, 115, 22, 0.3);
+    }
+    .carrito-venta h3 {
+      color: #f97316;
+    }
+    .grid-venta { 
+      display: grid; 
+      grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); 
+      gap: 1.2rem; 
+      max-height: 55vh; 
+      overflow-y: auto; 
+      padding-right: 0.3rem;
+    }
+    .card-venta {
+      background: #0f172a;
+      border-radius: 1.5rem; 
+      padding: 1rem; 
+      cursor: pointer; 
+      transition: all 0.2s;
+      border: 1px solid #334155; 
+      text-align: center; 
+      color: #e2e8f0;
+    }
+    .card-venta:hover { 
+      background: #1e293b; 
+      transform: scale(0.97); 
+      border-color: #f97316; 
+      box-shadow: 0 6px 14px rgba(249, 115, 22, 0.2);
+    }
+    .precio-venta { 
+      font-weight: 800; 
+      color: #fb923c; 
+      font-size: 1.2rem; 
+      margin: 0.5rem 0; 
+    }
+    .carrito-items { max-height: 310px; overflow-y: auto; margin: 1rem 0; }
+    .item-carrito {
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+      background: #0f172a; 
+      padding: 0.7rem; 
+      border-radius: 1.2rem; 
+      margin-bottom: 0.7rem;
+      font-size: 0.85rem; 
+      flex-wrap: wrap; 
+      gap: 0.5rem; 
+      border: 1px solid #334155;
+      color: #e2e8f0;
+    }
+    .cantidad-control { 
+      display: flex; 
+      align-items: center; 
+      gap: 0.5rem; 
+      background: #1e293b; 
+      padding: 0.2rem 0.6rem; 
+      border-radius: 2rem;
+    }
+    .cantidad-control button { 
+      background: #334155; 
+      border: none; 
+      width: 28px; 
+      border-radius: 40px; 
+      cursor: pointer; 
+      font-weight: bold; 
+      font-size: 1rem;
+      color: #f97316;
+      transition: all 0.2s;
+    }
+    .cantidad-control button:hover {
+      background: #f97316;
+      color: #0f172a;
+    }
+    .total-venta { 
+      font-size: 1.6rem; 
+      font-weight: 800; 
+      border-top: 2px dashed #f97316; 
+      padding-top: 1rem; 
+      margin: 1rem 0; 
+      color: #fb923c;
+    }
+    .btn-vender { 
+      background: linear-gradient(105deg, #f97316, #ea580c);
+      width: 100%; 
+      padding: 0.9rem; 
+      border-radius: 2rem; 
+      color: white; 
+      font-weight: bold; 
+      border: none; 
+      font-size: 1rem; 
+      cursor: pointer; 
+      transition: 0.2s; 
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+    }
+    .btn-vender:hover { 
+      background: linear-gradient(105deg, #ea580c, #c2410c); 
+      transform: scale(0.98);
+      box-shadow: 0 8px 18px rgba(249, 115, 22, 0.3);
+    }
+    .btn-limpiar { 
+      background: #334155; 
+      width: 100%; 
+      margin-top: 0.7rem; 
+      padding: 0.7rem; 
+      border-radius: 2rem; 
+      border: none; 
+      cursor: pointer; 
+      font-weight: 500;
+      color: #e2e8f0;
+      transition: 0.2s;
+    }
+    .btn-limpiar:hover {
+      background: #475569;
+    }
+
+    /* historial */
+    .historial-container { 
+      margin-top: 2rem; 
+      background: rgba(30, 41, 59, 0.85); 
+      backdrop-filter: blur(6px); 
+      border-radius: 2rem; 
+      padding: 1.5rem; 
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+    .historial-header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      flex-wrap: wrap; 
+      margin-bottom: 1.2rem; 
+    }
+    .historial-header h3 {
+      color: #f97316;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { 
+      padding: 0.9rem 0.5rem; 
+      text-align: left; 
+      border-bottom: 1px solid #334155; 
+      font-size: 0.85rem; 
+      color: #e2e8f0;
+    }
+    th { 
+      background: #0f172a; 
+      font-weight: 700; 
+      color: #fb923c; 
+      border-radius: 1rem 1rem 0 0; 
+    }
+    .factura-btn { 
+      background: #f97316; 
+      color: #0f172a; 
+      border: none; 
+      padding: 0.3rem 1rem; 
+      border-radius: 2rem; 
+      cursor: pointer; 
+      font-size: 0.7rem; 
+      font-weight: 600; 
+      transition: 0.2s;
+    }
+    .factura-btn:hover { 
+      background: #fb923c; 
+      transform: scale(0.95);
+    }
+    .modal { 
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.7); 
+      backdrop-filter: blur(6px); 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 1000; 
+    }
+    .modal-content { 
+      background: #1e293b; 
+      border-radius: 2rem; 
+      padding: 2rem; 
+      max-width: 520px; 
+      width: 90%; 
+      max-height: 80vh; 
+      overflow-y: auto; 
+      box-shadow: 0 25px 40px rgba(0, 0, 0, 0.4);
+      border: 1px solid #f97316;
+      color: #e2e8f0;
+    }
+    .modal-content h3 {
+      color: #f97316;
+      margin-bottom: 1rem;
+    }
+    .factura-detalle { 
+      font-family: 'JetBrains Mono', monospace; 
+      background: #0f172a; 
+      padding: 1rem; 
+      border-radius: 1rem; 
+      white-space: pre-line; 
+      font-size: 0.8rem; 
+      line-height: 1.4;
+      color: #cbd5e1;
+    }
+    .empty-msg { 
+      text-align: center; 
+      color: #94a3b8; 
+      padding: 2rem; 
+      font-style: italic; 
+    }
+
+    /* scroll personalizado */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb { background: #f97316; border-radius: 10px; }
+    ::-webkit-scrollbar-thumb:hover { background: #fb923c; }
   </style>
 </head>
 <body>
 <div class="app-container">
   <div class="top-bar">
+<<<<<<< HEAD
     <div class="logo-area"><h2>🛒 TiendaPro · Ventas con Historial Local</h2></div>
     <div class="role-badge">
       <span>👤 Rol actual:</span>
       <span id="rolActualTexto" class="role-text admin">Administrador</span>
       <button id="btnCambiarRol" class="btn-logout">🔁 Cambiar a Vendedor</button>
+=======
+    <div class="logo-area"><h2>✨ NEXUS · POS Moderno</h2></div>
+    <div class="role-badge">
+      <span>👤 Rol actual:</span>
+      <span id="rolActualTexto" class="role-text admin">Administrador</span>
+      <button id="btnCambiarRol" class="btn-logout">🔄 Cambiar a Vendedor</button>
+>>>>>>> frontend
     </div>
   </div>
 
   <!-- PANEL ADMIN -->
   <div id="adminPanel" class="panel active">
     <div class="stats-row">
+<<<<<<< HEAD
       <div class="stat-card"><div class="stat-label">📦 TOTAL PRODUCTOS</div><div class="stat-number" id="totalProductos">0</div></div>
       <div class="stat-card"><div class="stat-label">💰 VALOR INVENTARIO</div><div class="stat-number" id="valorInventario">S/. 0</div></div>
       <div class="stat-card"><div class="stat-label">🔄 VENTAS TOTALES</div><div class="stat-number" id="totalVentas">0</div></div>
@@ -148,11 +586,30 @@
       </div>
       <div class="products-panel"><h3>📋 Lista de Productos</h3>
         <button class="btn-primary" style="background:#334155; margin-bottom:1rem;" onclick="cargarProductos()">⟳ Cargar productos</button>
+=======
+      <div class="stat-card"><div class="stat-label">📦 PRODUCTOS ACTIVOS</div><div class="stat-number" id="totalProductos">0</div></div>
+      <div class="stat-card"><div class="stat-label">💰 VALOR INVENTARIO</div><div class="stat-number" id="valorInventario">S/. 0</div></div>
+      <div class="stat-card"><div class="stat-label">🔄 VENTAS REGISTRADAS</div><div class="stat-number" id="totalVentas">0</div></div>
+    </div>
+    <div class="two-columns">
+      <div class="form-panel"><h3 style="margin-bottom:1rem;">✨ Nuevo Producto</h3>
+        <div class="input-group"><label>Nombre del producto</label><input type="text" id="nombre" placeholder="Ej: Laptop Pro"></div>
+        <div class="input-group"><label>Precio (S/.)</label><input type="number" id="precio" placeholder="0.00" step="0.01"></div>
+        <div class="input-group"><label>Stock inicial</label><input type="number" id="stock" placeholder="Cantidad"></div>
+        <button class="btn-primary" onclick="agregarProducto()">➕ Agregar producto</button>
+      </div>
+      <div class="products-panel"><h3 style="margin-bottom:0.8rem;">📋 Catálogo</h3>
+        <button class="btn-primary" style="background:#456f86; margin-bottom:1.2rem; width:auto; padding:0.5rem 1.5rem;" onclick="cargarProductos()">⟳ Sincronizar</button>
+>>>>>>> frontend
         <div id="adminProductsGrid" class="products-grid"></div>
       </div>
     </div>
     <div class="historial-container">
+<<<<<<< HEAD
       <div class="historial-header"><h3>📜 HISTORIAL DE VENTAS</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1rem;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+=======
+      <div class="historial-header"><h3>📜 Historial de Ventas</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1.5rem; background:#2c5f7a;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+>>>>>>> frontend
       <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Factura</th></tr></thead><tbody id="historialBody"><tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr></tbody></table></div>
     </div>
   </div>
@@ -161,13 +618,22 @@
   <div id="vendorPanel" class="panel">
     <div class="pos-container">
       <div class="productos-venta">
+<<<<<<< HEAD
         <h3>🛍️ Productos disponibles</h3>
+=======
+        <h3>🛍️ Productos en stock</h3>
+>>>>>>> frontend
         <div class="search-venta"><input type="text" id="searchVenta" placeholder="🔍 Buscar producto..." onkeyup="filtrarProductosVenta()"></div>
         <div id="ventaProductosGrid" class="grid-venta"></div>
       </div>
       <div class="carrito-venta">
+<<<<<<< HEAD
         <h3>🛒 Carrito de compras</h3>
         <div class="input-group"><label>📄 Tipo Comprobante</label>
+=======
+        <h3>🛒 Carrito inteligente</h3>
+        <div class="input-group"><label>📄 Tipo de comprobante</label>
+>>>>>>> frontend
           <select id="tipoComprobante">
             <option value="BOLETA">Boleta</option>
             <option value="FACTURA">Factura</option>
@@ -181,19 +647,32 @@
         </div>
         <div id="carritoLista" class="carrito-items"></div>
         <div class="total-venta">Total: S/. <span id="totalCarrito">0.00</span></div>
+<<<<<<< HEAD
         <button class="btn-vender" onclick="realizarVenta()">💵 COBRAR Y GUARDAR</button>
         <button class="btn-limpiar" onclick="limpiarCarrito()">🗑️ Limpiar carrito</button>
       </div>
     </div>
     <div class="historial-container">
       <div class="historial-header"><h3>📜 ÚLTIMAS VENTAS</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1rem;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+=======
+        <button class="btn-vender" onclick="realizarVenta()">💵 Cobrar y guardar</button>
+        <button class="btn-limpiar" onclick="limpiarCarrito()">🗑️ Vaciar carrito</button>
+      </div>
+    </div>
+    <div class="historial-container">
+      <div class="historial-header"><h3>📜 Últimas transacciones</h3><button class="btn-primary" style="width:auto; padding:0.4rem 1.5rem;" onclick="cargarHistorial()">⟳ Actualizar</button></div>
+>>>>>>> frontend
       <div style="overflow-x:auto;"><table style="width:100%"><thead><tr><th>Fecha</th><th>Comprobante</th><th>Cliente</th><th>Productos</th><th>Total</th><th>Factura</th></tr></thead><tbody id="historialBodyVendor"><tr><td colspan="6" style="text-align:center;">Cargando historial...</td></tr></tbody></table></div>
     </div>
   </div>
 </div>
 
 <div id="facturaModal" class="modal">
+<<<<<<< HEAD
   <div class="modal-content"><span class="close-modal" onclick="cerrarModal()">&times;</span><h3>🧾 COMPROBANTE DE VENTA</h3><div id="facturaDetalle" class="factura-detalle"></div><button onclick="cerrarModal()" style="margin-top:1rem; padding:0.5rem 1rem;">Cerrar</button></div>
+=======
+  <div class="modal-content"><span class="close-modal" onclick="cerrarModal()" style="float:right; font-size:1.7rem; cursor:pointer;">&times;</span><h3>🧾 COMPROBANTE DIGITAL</h3><div id="facturaDetalle" class="factura-detalle"></div><button onclick="cerrarModal()" style="margin-top:1rem; padding:0.6rem 1.2rem; border-radius:2rem; border:none; background:#eef2f8; cursor:pointer;">Cerrar</button></div>
+>>>>>>> frontend
 </div>
 
 <script>
@@ -202,7 +681,11 @@
   let carrito = [];
   let currentRole = "admin";
 
+<<<<<<< HEAD
   // ========== HISTORIAL EN LOCALSTORAGE ==========
+=======
+  // ========== HISTORIAL LOCAL ==========
+>>>>>>> frontend
   function cargarHistorial() {
     const historial = JSON.parse(localStorage.getItem("historial_ventas") || "[]");
     renderizarHistorial(historial);
@@ -213,7 +696,10 @@
   function renderizarHistorial(ventas) {
     const tablaBody = document.getElementById("historialBody");
     const tablaBodyVendor = document.getElementById("historialBodyVendor");
+<<<<<<< HEAD
     
+=======
+>>>>>>> frontend
     const renderTabla = (tbody) => {
       if (!tbody) return;
       if (!ventas || ventas.length === 0) {
@@ -227,14 +713,21 @@
           <td>${venta.fecha}</td>
           <td>${venta.tipoComprobante || "BOLETA"}</td>
           <td>${venta.clienteNombre || "Consumidor Final"}<br><small>${venta.clienteDocumento || "—"}</small></td>
+<<<<<<< HEAD
           <td>${productosResumen.substring(0, 60)}${productosResumen.length>60?"...":""}</td>
+=======
+          <td>${productosResumen.substring(0, 65)}${productosResumen.length>65?"...":""}</td>
+>>>>>>> frontend
           <td>S/. ${venta.total.toFixed(2)}</td>
           <td><button class="factura-btn" onclick='verFactura(${JSON.stringify(venta).replace(/'/g, "&#39;")})'>Ver Factura</button></td>
         </tr>`;
       });
       tbody.innerHTML = html;
     };
+<<<<<<< HEAD
     
+=======
+>>>>>>> frontend
     renderTabla(tablaBody);
     renderTabla(tablaBodyVendor);
   }
@@ -256,6 +749,7 @@
   }
 
   function verFactura(venta) {
+<<<<<<< HEAD
     let detalles = `================================
        🧾 ${venta.tipoComprobante || "BOLETA"} DE VENTA
 ================================
@@ -271,15 +765,28 @@ Productos:\n`;
 TOTAL: S/. ${venta.total.toFixed(2)}
 ================================
 ¡Gracias por su compra!`;
+=======
+    let detalles = `================================\n       🧾 ${venta.tipoComprobante || "BOLETA"} ELECTRÓNICA\n================================\nFecha: ${venta.fecha}\nCliente: ${venta.clienteNombre || "Consumidor Final"}\n${venta.clienteDocumento ? `Documento: ${venta.clienteDocumento}` : ''}\n--------------------------------\nPRODUCTOS:\n`;
+    venta.items.forEach(item => {
+      detalles += `  ${item.nombre.padEnd(22)} x${item.cantidad}   S/. ${(item.precio * item.cantidad).toFixed(2)}\n`;
+    });
+    detalles += `--------------------------------\nTOTAL: S/. ${venta.total.toFixed(2)}\n================================\n✨ ¡Gracias por confiar en Nexus!`;
+>>>>>>> frontend
     document.getElementById("facturaDetalle").innerText = detalles;
     document.getElementById("facturaModal").style.display = "flex";
   }
 
+<<<<<<< HEAD
   function cerrarModal() {
     document.getElementById("facturaModal").style.display = "none";
   }
 
   // ========== ADMIN: PRODUCTOS ==========
+=======
+  function cerrarModal() { document.getElementById("facturaModal").style.display = "none"; }
+
+  // ========== ADMIN: CRUD ==========
+>>>>>>> frontend
   async function cargarProductos() {
     try {
       const res = await fetch(URL_PRODUCTOS);
@@ -288,7 +795,11 @@ TOTAL: S/. ${venta.total.toFixed(2)}
       actualizarEstadisticasAdmin(productosGlobales);
       renderAdminProducts(productosGlobales);
     } catch (err) {
+<<<<<<< HEAD
       document.getElementById("adminProductsGrid").innerHTML = `<div class="empty-msg">⚠️ Error: Asegúrate que JSON Server esté corriendo en ${URL_PRODUCTOS}</div>`;
+=======
+      document.getElementById("adminProductsGrid").innerHTML = `<div class="empty-msg">⚠️ Error: Levanta JSON Server en ${URL_PRODUCTOS}</div>`;
+>>>>>>> frontend
     }
   }
 
@@ -302,6 +813,7 @@ TOTAL: S/. ${venta.total.toFixed(2)}
 
   function renderAdminProducts(productos) {
     const container = document.getElementById("adminProductsGrid");
+<<<<<<< HEAD
     if (!productos.length) { container.innerHTML = `<div class="empty-msg">📭 No hay productos. Agrega uno nuevo.</div>`; return; }
     let html = "";
     productos.forEach(p => {
@@ -309,6 +821,15 @@ TOTAL: S/. ${venta.total.toFixed(2)}
         <div class="product-name"><span>${escapeHtml(p.nombre)}</span><span>S/. ${parseFloat(p.precio).toFixed(2)}</span></div>
         <div>📦 Stock: ${p.stock} uds</div>
         <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️ Eliminar</button>
+=======
+    if (!productos.length) { container.innerHTML = `<div class="empty-msg">📭 No hay productos registrados.</div>`; return; }
+    let html = "";
+    productos.forEach(p => {
+      html += `<div class="product-card">
+        <div class="product-name"><span>${escapeHtml(p.nombre)}</span><span style="color:#1e6b46;">S/. ${parseFloat(p.precio).toFixed(2)}</span></div>
+        <div>📦 Stock: ${p.stock} unidades</div>
+        <button class="btn-delete" onclick="eliminarProducto(${p.id})">🗑️ Eliminar producto</button>
+>>>>>>> frontend
       </div>`;
     });
     container.innerHTML = html;
@@ -320,6 +841,7 @@ TOTAL: S/. ${venta.total.toFixed(2)}
     const stock = parseInt(document.getElementById("stock").value);
     if (!nombre || isNaN(precio) || precio < 0 || isNaN(stock) || stock < 0) { alert("❌ Complete todos los campos correctamente."); return; }
     try {
+<<<<<<< HEAD
       const res = await fetch(URL_PRODUCTOS, { 
         method: "POST", 
         headers: { "Content-Type": "application/json" }, 
@@ -333,6 +855,15 @@ TOTAL: S/. ${venta.total.toFixed(2)}
       await cargarProductos();
       if (currentRole === "vendedor") await cargarProductosVenta();
     } catch (err) { alert("Error al agregar producto. ¿JSON Server está corriendo?"); }
+=======
+      const res = await fetch(URL_PRODUCTOS, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre, precio, stock }) });
+      const data = await res.json();
+      alert(data.mensaje || "✅ Producto agregado correctamente");
+      document.getElementById("nombre").value = ""; document.getElementById("precio").value = ""; document.getElementById("stock").value = "";
+      await cargarProductos();
+      if (currentRole === "vendedor") await cargarProductosVenta();
+    } catch (err) { alert("Error: Verifica que JSON Server esté corriendo."); }
+>>>>>>> frontend
   }
 
   async function eliminarProducto(id) {
@@ -352,9 +883,13 @@ TOTAL: S/. ${venta.total.toFixed(2)}
       const data = await res.json();
       productosGlobales = data.filter(p => parseInt(p.stock) > 0);
       filtrarProductosVenta();
+<<<<<<< HEAD
     } catch (err) { 
       document.getElementById("ventaProductosGrid").innerHTML = `<div class="empty-msg">⚠️ Error cargando productos</div>`;
     }
+=======
+    } catch (err) { document.getElementById("ventaProductosGrid").innerHTML = `<div class="empty-msg">⚠️ Error al cargar inventario</div>`; }
+>>>>>>> frontend
   }
 
   function filtrarProductosVenta() {
@@ -380,10 +915,17 @@ TOTAL: S/. ${venta.total.toFixed(2)}
   function agregarAlCarrito(id, nombre, precio, stockMax) {
     const index = carrito.findIndex(item => item.id === id);
     if (index !== -1) {
+<<<<<<< HEAD
       if (carrito[index].cantidad + 1 > carrito[index].stockMax) { alert(`Stock insuficiente. Solo hay ${carrito[index].stockMax} unidades.`); return; }
       carrito[index].cantidad++;
     } else {
       if (stockMax <= 0) { alert("Producto sin stock"); return; }
+=======
+      if (carrito[index].cantidad + 1 > carrito[index].stockMax) { alert(`Stock insuficiente. Máximo ${carrito[index].stockMax} unidades.`); return; }
+      carrito[index].cantidad++;
+    } else {
+      if (stockMax <= 0) { alert("Producto sin stock disponible"); return; }
+>>>>>>> frontend
       carrito.push({ id, nombre, precio, cantidad: 1, stockMax });
     }
     renderCarrito();
@@ -395,13 +937,21 @@ TOTAL: S/. ${venta.total.toFixed(2)}
     const nuevaCant = carrito[idx].cantidad + delta;
     if (nuevaCant <= 0) carrito.splice(idx, 1);
     else if (nuevaCant <= carrito[idx].stockMax) carrito[idx].cantidad = nuevaCant;
+<<<<<<< HEAD
     else alert(`No puedes superar el stock disponible (${carrito[idx].stockMax})`);
+=======
+    else alert(`Stock máximo disponible: ${carrito[idx].stockMax}`);
+>>>>>>> frontend
     renderCarrito();
   }
 
   function renderCarrito() {
     const container = document.getElementById("carritoLista");
+<<<<<<< HEAD
     if (!carrito.length) { container.innerHTML = `<div class="empty-msg">🛒 Carrito vacío</div>`; document.getElementById("totalCarrito").innerText = "0.00"; return; }
+=======
+    if (!carrito.length) { container.innerHTML = `<div class="empty-msg">🛒 Carrito vacío, agrega productos</div>`; document.getElementById("totalCarrito").innerText = "0.00"; return; }
+>>>>>>> frontend
     let html = ""; let total = 0;
     carrito.forEach(item => {
       const subtotal = item.precio * item.cantidad; total += subtotal;
@@ -420,10 +970,15 @@ TOTAL: S/. ${venta.total.toFixed(2)}
     const tipoComprobante = document.getElementById("tipoComprobante").value;
     let clienteDocumento = document.getElementById("clienteDocumento").value.trim();
     let clienteNombre = document.getElementById("clienteNombre").value.trim();
+<<<<<<< HEAD
     
     if (tipoComprobante === "FACTURA" && !clienteDocumento) { alert("Para factura es necesario ingresar RUC"); return; }
     if (!clienteNombre) clienteNombre = "Consumidor Final";
     
+=======
+    if (tipoComprobante === "FACTURA" && !clienteDocumento) { alert("Para factura es necesario ingresar RUC"); return; }
+    if (!clienteNombre) clienteNombre = "Consumidor Final";
+>>>>>>> frontend
     try {
       const res = await fetch(URL_PRODUCTOS);
       const productosActualizados = await res.json();
@@ -434,6 +989,7 @@ TOTAL: S/. ${venta.total.toFixed(2)}
       for (let item of carrito) {
         const prodReal = productosActualizados.find(p => p.id === item.id);
         const nuevoStock = prodReal.stock - item.cantidad;
+<<<<<<< HEAD
         await fetch(`${URL_PRODUCTOS}/${item.id}`, { 
           method: "PUT", 
           headers: { "Content-Type": "application/json" }, 
@@ -468,22 +1024,46 @@ TOTAL: S/. ${venta.total.toFixed(2)}
       return m; 
     }); 
   }
+=======
+        await fetch(`${URL_PRODUCTOS}/${item.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ nombre: prodReal.nombre, precio: prodReal.precio, stock: nuevoStock }) });
+      }
+      const totalVenta = carrito.reduce((acc, i) => acc + (i.precio * i.cantidad), 0);
+      guardarVentaEnLocalStorage(tipoComprobante, clienteDocumento, clienteNombre, carrito, totalVenta);
+      alert(`✅ Venta exitosa!\nTotal: S/. ${totalVenta.toFixed(2)}`);
+      limpiarCarrito();
+      await cargarProductos();
+      await cargarProductosVenta();
+    } catch (err) { alert("Error en la venta: " + err.message); }
+  }
+
+  function limpiarCarrito() { carrito = []; renderCarrito(); document.getElementById("clienteDocumento").value = ""; document.getElementById("clienteNombre").value = ""; }
+
+  function escapeHtml(str) { if (!str) return ""; return str.replace(/[&<>]/g, m => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;' }[m])); }
+>>>>>>> frontend
 
   function cambiarRol() {
     if (currentRole === "admin") {
       currentRole = "vendedor";
       document.getElementById("rolActualTexto").innerText = "Vendedor";
       document.getElementById("rolActualTexto").className = "role-text vendor";
+<<<<<<< HEAD
       document.getElementById("btnCambiarRol").innerHTML = "🔁 Cambiar a Administrador";
       document.getElementById("adminPanel").classList.remove("active");
       document.getElementById("vendorPanel").classList.add("active");
       cargarProductosVenta(); 
       limpiarCarrito(); 
       cargarHistorial();
+=======
+      document.getElementById("btnCambiarRol").innerHTML = "🔄 Cambiar a Administrador";
+      document.getElementById("adminPanel").classList.remove("active");
+      document.getElementById("vendorPanel").classList.add("active");
+      cargarProductosVenta(); limpiarCarrito(); cargarHistorial();
+>>>>>>> frontend
     } else {
       currentRole = "admin";
       document.getElementById("rolActualTexto").innerText = "Administrador";
       document.getElementById("rolActualTexto").className = "role-text admin";
+<<<<<<< HEAD
       document.getElementById("btnCambiarRol").innerHTML = "🔁 Cambiar a Vendedor";
       document.getElementById("vendorPanel").classList.remove("active");
       document.getElementById("adminPanel").classList.add("active");
@@ -493,6 +1073,15 @@ TOTAL: S/. ${venta.total.toFixed(2)}
   }
 
   // ========== INICIALIZACIÓN ==========
+=======
+      document.getElementById("btnCambiarRol").innerHTML = "🔄 Cambiar a Vendedor";
+      document.getElementById("vendorPanel").classList.remove("active");
+      document.getElementById("adminPanel").classList.add("active");
+      cargarProductos(); cargarHistorial();
+    }
+  }
+
+>>>>>>> frontend
   window.addEventListener("DOMContentLoaded", () => {
     cargarProductos();
     cargarHistorial();
